@@ -1,0 +1,36 @@
+[package]
+name = "talon-sandbox"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "Rust SDK for Talon Sandbox — isolated container environments for AI agents"
+license = "LicenseRef-Proprietary"
+repository = "https://github.com/talon-org/talon-sandbox-sdk-rust"
+homepage = "https://talon-sandbox.dev"
+keywords = ["sandbox", "container", "ai", "agent", "code-execution"]
+categories = ["api-bindings", "development-tools"]
+
+[dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+tokio = { version = "1", features = ["rt", "macros", "time", "sync", "io-util"] }
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
+futures-util = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+bytes = "1"
+thiserror = "2"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+
+[[example]]
+name = "hello"
+path = "examples/hello.rs"
+
+[[example]]
+name = "pty_loop"
+path = "examples/pty_loop.rs"
+
+[[example]]
+name = "vibe_coding"
+path = "examples/vibe_coding.rs"
