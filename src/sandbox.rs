@@ -232,6 +232,16 @@ pub(crate) fn build_create_body(opts: CreateOpts) -> Result<Value> {
         }
     }
 
+    // per-sandbox 出站白名单(restricted-egress 下生效;非空覆盖全局)
+    if !opts.network_allowed_hosts.is_empty() {
+        let hosts: Vec<Value> = opts
+            .network_allowed_hosts
+            .into_iter()
+            .map(Value::String)
+            .collect();
+        body.insert("network_allowed_hosts".into(), Value::Array(hosts));
+    }
+
     // 环境变量(HashMap<String,String>)
     if !opts.env.is_empty() {
         // 服务端接受 {"KEY": "val"} map 格式(与 Go Env map 对齐)

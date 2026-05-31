@@ -30,6 +30,8 @@ async fn main() -> talon_sandbox::Result<()> {
             disk: Some("10GiB".into()),
         },
         network: Some("allowlist".into()),
+        // per-sandbox 出站白名单:只放行 npm registry,装依赖够用又不开全网。
+        network_allowed_hosts: vec!["registry.npmjs.org".into()],
         env,
         timeout: Some("30m".into()), // idle 自动暂停兜底
         ttl: Some("6h".into()),      // 硬性销毁兜底

@@ -16,6 +16,10 @@ pub struct CreateOpts {
     pub resources: Resources,
     /// 网络策略:"allowlist" | "open" | "sealed"。空 = 服务端默认。
     pub network: Option<String>,
+    /// per-sandbox 出站白名单(host / IP / CIDR),仅在 network 解析为 "allowlist"
+    /// (restricted-egress)时生效。非空 → 覆盖 worker 启动期全局白名单;空 → 回退全局。
+    /// 让调用方无需运维改 worker env 即可放行自己的域名(如 git 服务)。
+    pub network_allowed_hosts: Vec<String>,
     /// 启动环境变量。
     pub env: HashMap<String, String>,
     /// idle 自动暂停超时,如 "30m"。空 = 不启用。
