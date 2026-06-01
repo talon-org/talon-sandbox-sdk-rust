@@ -79,6 +79,19 @@ impl Client {
         self.send(req).await
     }
 
+    /// 发 POST(JSON body),带自定义超时,把 JSON 响应反序列化成 `T`。
+    ///
+    /// 用于耗时较长的同步端点(如 `agent/run` 最长 5 分钟)。
+    pub(crate) async fn post_with_timeout<B: Serialize, T: DeserializeOwned>(
+        &self,
+        path: &str,
+        body: &B,
+        timeout: Duration,
+    ) -> Result<T> {
+        let req = self.http.post(self.url(path)).json(body).timeout(timeout);
+        self.send(req).await
+    }
+
     /// 发 POST,不关心响应体(只校验状态码)。
     pub(crate) async fn post_no_content<B: Serialize>(&self, path: &str, body: &B) -> Result<()> {
         let req = self.http.post(self.url(path)).json(body);

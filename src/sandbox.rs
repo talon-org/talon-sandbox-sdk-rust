@@ -17,6 +17,7 @@ use crate::types::{
 };
 
 // 子资源 handle,由其它模块定义,这里按跨模块约定 import。
+use crate::browser::Browser;
 use crate::env::Env;
 use crate::fs::Fs;
 use crate::terminal::Terminal;
@@ -148,6 +149,25 @@ impl Sandbox {
         self.client.post_no_content(&path, &serde_json::json!({})).await
     }
 
+    /// 启动已停止的 sandbox,使其重新进入 running 状态。
+    ///
+    /// 对应端点:`POST /v1/sandboxes/{id}/start`,返回 204。
+    /// 与 pause/resume 不同:stop/start 是更重量级的停止——进程被终止,
+    /// 而 pause/resume 只是冻结进程(cgroup freeze)。
+    pub async fn start(&self) -> Result<()> {
+        let path = format!("/v1/sandboxes/{}/start", self.info.id);
+        self.client.post_no_content(&path, &serde_json::json!({})).await
+    }
+
+    /// 停止 sandbox(running→stopped),终止所有进程但保留文件系统。
+    ///
+    /// 对应端点:`POST /v1/sandboxes/{id}/stop`,返回 204。
+    /// 与 `pause` 不同:stop 是真正终止进程,可通过 [`Sandbox::start`] 重新启动。
+    pub async fn stop(&self) -> Result<()> {
+        let path = format!("/v1/sandboxes/{}/stop", self.info.id);
+        self.client.post_no_content(&path, &serde_json::json!({})).await
+    }
+
     /// 永久销毁 sandbox(DELETE)。对齐 Go `Kill`。
     pub async fn kill(&self) -> Result<()> {
         let path = format!("/v1/sandboxes/{}", self.info.id);
@@ -181,6 +201,13 @@ impl Sandbox {
     /// 返回 PTY 终端 handle。对齐 Go `Terminal()`。
     pub fn terminal(&self) -> Terminal {
         Terminal::new(self.info.id.clone(), self.client.clone())
+    }
+
+    /// 返回 headless 浏览器会话 handle(Spec 34)。
+    ///
+    /// 通过返回的 [`Browser`] 可以启动/查询/停止 sandbox 内的 Chromium 进程。
+    pub fn browser(&self) -> Browser {
+        Browser::new(self.info.id.clone(), self.client.clone())
     }
 }
 

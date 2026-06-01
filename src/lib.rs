@@ -40,12 +40,15 @@
 //! );
 //! ```
 
+mod agent;
+mod browser;
 mod client;
 mod config;
 mod env;
 mod errors;
 mod expose;
 mod fs;
+mod images;
 mod parse;
 mod process;
 mod sandbox;
@@ -54,11 +57,14 @@ mod types;
 
 // ─── 公开 API ───────────────────────────────────────────────────────────────
 
+pub use agent::{AgentRunOpts, AgentRunResponse, AgentRunStep};
+pub use browser::{Browser, BrowserSession};
 pub use client::{Client, ClientBuilder};
 pub use config::{configure, Config};
 pub use env::Env;
 pub use errors::{Error, Result};
 pub use fs::Fs;
+pub use images::{list_images, list_images_with, ImageInfo};
 pub use parse::{parse_duration, parse_size};
 pub use process::{SpawnOpts, SpawnedProcess};
 pub use sandbox::Sandbox;
