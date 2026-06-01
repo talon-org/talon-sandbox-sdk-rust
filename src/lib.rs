@@ -60,7 +60,7 @@ pub use env::Env;
 pub use errors::{Error, Result};
 pub use fs::Fs;
 pub use parse::{parse_duration, parse_size};
-pub use process::SpawnedProcess;
+pub use process::{SpawnOpts, SpawnedProcess};
 pub use sandbox::Sandbox;
 pub use terminal::{PtySession, Terminal};
 pub use types::{

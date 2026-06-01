@@ -49,6 +49,10 @@ pub struct SpawnOpts {
     pub cwd: Option<String>,
     /// 追加环境变量,格式 `"KEY=value"`。
     pub env: Vec<String>,
+    /// 进程声明对外暴露的容器端口(如 `[5173]`)。runc adapter 据此建立
+    /// 容器→host 的 DNAT 映射,预览反向代理的端口准入 + 路由都依赖它
+    /// (见服务端 `expose_ports`/`host_ports`)。空 = 不声明。
+    pub expose_ports: Vec<i32>,
 }
 
 // ─── 内部 wire DTO ────────────────────────────────────────────────────────────
@@ -236,6 +240,9 @@ impl Sandbox {
         }
         if !opts.env.is_empty() {
             body["env"] = serde_json::json!(opts.env);
+        }
+        if !opts.expose_ports.is_empty() {
+            body["expose_ports"] = serde_json::json!(opts.expose_ports);
         }
 
         let path = format!("/v1/sandboxes/{}/processes", self.info.id);
