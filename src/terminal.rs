@@ -72,7 +72,7 @@ impl Terminal {
         &self,
         initial_size: Option<(u16, u16)>,
     ) -> Result<PtySession> {
-        // 1. 拼 WebSocket URL,e.g. "ws://localhost:18080/v1/sandboxes/sb_xxx/pty"
+        // 1. 拼 WebSocket URL,e.g. "wss://api.sandbox.talon.net.cn/v1/sandboxes/sb_xxx/pty"
         let url = self
             .client
             .ws_url(&format!("/v1/sandboxes/{}/pty", self.sandbox_id));

@@ -13,7 +13,11 @@ use crate::errors::{Error, Result};
 use crate::types::ErrorBody;
 
 /// 默认 API 服务地址(未显式指定且无 env 时)。
-pub(crate) const DEFAULT_SERVER: &str = "http://localhost:18080";
+///
+/// 指向官方托管端点:拿到 `ask_` key 的用户配好 `TALON_SANDBOX_API_KEY` 即可直接
+/// 使用,无需再设 server。自部署用户用 `TALON_SANDBOX_SERVER` 环境变量或
+/// `Client::builder().server(...)` 显式覆盖(优先级 显式 > env > 此默认)。
+pub(crate) const DEFAULT_SERVER: &str = "https://api.sandbox.talon.net.cn";
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// 所有 SDK 操作的 HTTP 客户端。
@@ -36,8 +40,8 @@ pub struct ClientBuilder {
 impl Client {
     /// 用默认配置创建 client。
     ///
-    /// `server` 为空时回退到 `TALON_SANDBOX_SERVER` 环境变量,再回退到
-    /// `http://localhost:18080`。API key 从参数或 `TALON_SANDBOX_API_KEY` 读取
+    /// `server` 为空时回退到 `TALON_SANDBOX_SERVER` 环境变量,再回退到官方托管
+    /// 端点 `https://api.sandbox.talon.net.cn`。API key 从参数或 `TALON_SANDBOX_API_KEY` 读取
     /// (见 [`Client::builder`])。
     pub fn new(server: impl Into<String>) -> Self {
         Self::builder().server(server).build()
