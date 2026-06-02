@@ -10,7 +10,7 @@ use std::collections::HashMap;
 /// 创建 sandbox 的配置。字段全部可选,空值走服务端默认。
 #[derive(Debug, Clone, Default)]
 pub struct CreateOpts {
-    /// 容器镜像引用,如 "node:20-bookworm"。空 = 系统默认镜像。
+    /// 容器镜像引用,如 "talon-alpine"。空 = 系统默认镜像。
     pub image: Option<String>,
     /// 计算资源分配。
     pub resources: Resources,

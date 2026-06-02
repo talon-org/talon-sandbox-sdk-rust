@@ -23,7 +23,7 @@ async fn main() -> talon_sandbox::Result<()> {
     env.insert("NODE_ENV".to_string(), "development".to_string());
 
     let sb = Sandbox::create(CreateOpts {
-        image: Some("node:20-bookworm".into()),
+        image: Some("talon-alpine".into()),
         resources: Resources {
             cpu: 2.0,
             memory: Some("4GiB".into()),

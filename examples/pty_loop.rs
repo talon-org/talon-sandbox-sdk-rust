@@ -10,7 +10,7 @@ use talon_sandbox::{CreateOpts, Resources, Sandbox};
 #[tokio::main]
 async fn main() -> talon_sandbox::Result<()> {
     let sb = Sandbox::create(CreateOpts {
-        image: Some("node:20-bookworm".into()),
+        image: Some("talon-alpine".into()),
         resources: Resources {
             cpu: 1.0,
             memory: Some("2GiB".into()),

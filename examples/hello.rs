@@ -11,7 +11,7 @@ use talon_sandbox::{CreateOpts, Resources, Sandbox};
 async fn main() -> talon_sandbox::Result<()> {
     // server / api_key 默认从 TALON_SANDBOX_SERVER / TALON_SANDBOX_API_KEY 读取。
     let sb = Sandbox::create(CreateOpts {
-        image: Some("node:20-bookworm".into()),
+        image: Some("talon-alpine".into()),
         resources: Resources {
             cpu: 1.0,
             memory: Some("2GiB".into()),
