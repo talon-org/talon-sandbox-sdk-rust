@@ -98,6 +98,18 @@ impl Client {
         self.send_discard(req).await
     }
 
+    /// 发 PUT(JSON body),把 JSON 响应反序列化成 `T`。
+    ///
+    /// 用于需要读回响应体的 PUT 端点(如 env set 返回全量 map)。
+    pub(crate) async fn put<B: Serialize, T: DeserializeOwned>(
+        &self,
+        path: &str,
+        body: &B,
+    ) -> Result<T> {
+        let req = self.http.put(self.url(path)).json(body);
+        self.send(req).await
+    }
+
     /// 发 PUT raw bytes(用于 fs 写文件)。
     pub(crate) async fn put_bytes(&self, path: &str, body: Vec<u8>) -> Result<()> {
         let req = self
@@ -115,6 +127,14 @@ impl Client {
         let resp = self.check_status(resp).await?;
         let bytes = resp.bytes().await.map_err(|e| Error::Network(Box::new(e)))?;
         Ok(bytes.to_vec())
+    }
+
+    /// 发 DELETE,把 JSON 响应反序列化成 `T`。
+    ///
+    /// 用于 DELETE 后需要读回响应体的端点(如 env unset 返回全量 map)。
+    pub(crate) async fn delete_json<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
+        let req = self.http.delete(self.url(path));
+        self.send(req).await
     }
 
     /// 发 DELETE。
