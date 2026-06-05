@@ -20,6 +20,13 @@ use crate::types::ErrorBody;
 pub(crate) const DEFAULT_SERVER: &str = "https://api.sandbox.talon.net.cn";
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 
+/// 规范 User-Agent,所有出站请求(HTTP + WebSocket 握手)统一携带。
+///
+/// 格式 `talon-sandbox-rust/<version>`,版本号在编译期从包元数据
+/// (`CARGO_PKG_VERSION`)取得,发版自动更新,无需手动改字符串。后端按此前缀把
+/// `createSandbox` 归因到 `sdk-rust`(来源追踪 created_from)。
+pub(crate) const USER_AGENT: &str = concat!("talon-sandbox-rust/", env!("CARGO_PKG_VERSION"));
+
 /// 所有 SDK 操作的 HTTP 客户端。
 ///
 /// 通过 [`Client::builder`] 或 [`Client::new`] 构造。可 `Clone`,克隆共享底层连接池。
@@ -158,6 +165,11 @@ impl Client {
         self.api_key.as_ref().map(|k| format!("Bearer {k}"))
     }
 
+    /// 规范 User-Agent 值,供 WebSocket 握手手动补头(HTTP 路径由 reqwest 自动带)。
+    pub(crate) fn user_agent(&self) -> &'static str {
+        USER_AGENT
+    }
+
     // ─── 私有 ─────────────────────────────────────────────────────────────────
 
     fn url(&self, path: &str) -> String {
@@ -252,6 +264,8 @@ impl ClientBuilder {
     pub fn build(self) -> Client {
         let http = reqwest::Client::builder()
             .timeout(self.timeout)
+            // 统一 User-Agent,供后端来源追踪归因到 sdk-rust。
+            .user_agent(USER_AGENT)
             .build()
             .expect("reqwest client build");
         Client {

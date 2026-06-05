@@ -83,6 +83,12 @@ impl Terminal {
             .into_client_request()
             .map_err(|e| Error::Network(Box::new(e)))?;
 
+        // 规范 User-Agent,与 HTTP 路径一致,供后端来源追踪。
+        request.headers_mut().insert(
+            "User-Agent",
+            HeaderValue::from_static(self.client.user_agent()),
+        );
+
         if let Some(auth) = self.client.auth_header() {
             let value = HeaderValue::from_str(&auth)
                 .map_err(|e| Error::Network(Box::new(e)))?;
