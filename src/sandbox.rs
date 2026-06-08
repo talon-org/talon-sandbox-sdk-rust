@@ -121,8 +121,34 @@ impl Sandbox {
     }
 
     /// 列出当前租户下的所有 sandbox,使用显式 client。
+    ///
+    /// 当 `opts.labels` 非空时,将每对 `(key, value)` 编码为 `label=key:value` query 参数
+    /// 发送给服务端(AND 语义,服务端只返回匹配全部 label 的 sandbox)。
+    /// 响应回来后仍保留客户端侧 [`matches_labels`] 二次校验,兼容不支持服务端 label 过滤
+    /// 的老版本后端。
     pub async fn list_with(client: Client, opts: ListOpts) -> Result<Vec<Sandbox>> {
-        let dto: SandboxListDto = client.get("/v1/sandboxes").await?;
+        // 将 labels HashMap 转换为 reqwest query 参数列表,格式 label=key:value。
+        // 预先分配容量避免多次 realloc。
+        let label_params: Vec<(&str, String)> = opts
+            .labels
+            .iter()
+            .map(|(k, v)| ("label", format!("{k}:{v}")))
+            .collect();
+
+        // 把 Vec<(&str, String)> 转为 Vec<(&str, &str)> 以符合 get_with_query 签名。
+        let params: Vec<(&str, &str)> = label_params
+            .iter()
+            .map(|(name, val)| (*name, val.as_str()))
+            .collect();
+
+        // labels 非空时附带 query 参数;为空时走普通 get(URL 更干净)。
+        let dto: SandboxListDto = if params.is_empty() {
+            client.get("/v1/sandboxes").await?
+        } else {
+            client.get_with_query("/v1/sandboxes", &params).await?
+        };
+
+        // 客户端侧二次过滤:老后端兜底 + 双保险。
         let sandboxes = dto
             .sandboxes
             .into_iter()
@@ -340,4 +366,86 @@ fn matches_labels(
     want: &std::collections::HashMap<String, String>,
 ) -> bool {
     want.iter().all(|(k, v)| have.get(k) == Some(v))
+}
+
+// ─── 单元测试 ────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    // ── matches_labels ──────────────────────────────────────────────────────
+
+    /// want 为空时始终匹配(列出全部)。
+    #[test]
+    fn matches_labels_empty_want() {
+        let have: HashMap<String, String> = [("env".into(), "prod".into())].into();
+        assert!(matches_labels(&have, &HashMap::new()));
+    }
+
+    /// have 包含 want 的全部 k=v → 匹配。
+    #[test]
+    fn matches_labels_subset_match() {
+        let have: HashMap<String, String> =
+            [("env".into(), "prod".into()), ("team".into(), "infra".into())].into();
+        let want: HashMap<String, String> = [("env".into(), "prod".into())].into();
+        assert!(matches_labels(&have, &want));
+    }
+
+    /// want 中有一个 key 对应值不同 → 不匹配。
+    #[test]
+    fn matches_labels_value_mismatch() {
+        let have: HashMap<String, String> = [("env".into(), "prod".into())].into();
+        let want: HashMap<String, String> = [("env".into(), "staging".into())].into();
+        assert!(!matches_labels(&have, &want));
+    }
+
+    /// want 中有 key 在 have 里不存在 → 不匹配。
+    #[test]
+    fn matches_labels_missing_key() {
+        let have: HashMap<String, String> = [("env".into(), "prod".into())].into();
+        let want: HashMap<String, String> =
+            [("env".into(), "prod".into()), ("region".into(), "cn".into())].into();
+        assert!(!matches_labels(&have, &want));
+    }
+
+    // ── label_params 编码 ───────────────────────────────────────────────────
+
+    /// 验证服务端 query 参数格式:label=key:value,冒号分隔(value 可含等号)。
+    #[test]
+    fn label_params_format() {
+        let labels: HashMap<String, String> =
+            [("env".into(), "prod".into())].into();
+        let params: Vec<(&str, String)> = labels
+            .iter()
+            .map(|(k, v)| ("label", format!("{k}:{v}")))
+            .collect();
+        assert_eq!(params.len(), 1);
+        assert_eq!(params[0].0, "label");
+        assert_eq!(params[0].1, "env:prod");
+    }
+
+    /// value 中含等号时冒号分隔不会歧义。
+    #[test]
+    fn label_params_value_with_equals() {
+        let labels: HashMap<String, String> =
+            [("filter".into(), "x=1".into())].into();
+        let params: Vec<(&str, String)> = labels
+            .iter()
+            .map(|(k, v)| ("label", format!("{k}:{v}")))
+            .collect();
+        assert_eq!(params[0].1, "filter:x=1");
+    }
+
+    /// labels 为空时不产生任何 query 参数。
+    #[test]
+    fn label_params_empty() {
+        let labels: HashMap<String, String> = HashMap::new();
+        let params: Vec<(&str, String)> = labels
+            .iter()
+            .map(|(k, v)| ("label", format!("{k}:{v}")))
+            .collect();
+        assert!(params.is_empty());
+    }
 }

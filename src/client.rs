@@ -76,6 +76,19 @@ impl Client {
         self.send(req).await
     }
 
+    /// 发 GET(附带 query 参数),把 JSON 响应反序列化成 `T`。
+    ///
+    /// `params` 是 `(name, value)` slice,允许同名重复 key(如多个 `label=k:v`)。
+    /// 若 slice 为空则行为与 [`get`](Self::get) 完全相同。
+    pub(crate) async fn get_with_query<T: DeserializeOwned>(
+        &self,
+        path: &str,
+        params: &[(&str, &str)],
+    ) -> Result<T> {
+        let req = self.http.get(self.url(path)).query(params);
+        self.send(req).await
+    }
+
     /// 发 POST(JSON body),把 JSON 响应反序列化成 `T`。
     pub(crate) async fn post<B: Serialize, T: DeserializeOwned>(
         &self,
