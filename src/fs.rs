@@ -38,9 +38,8 @@ impl Fs {
     /// 但 Rust 严格校验;如需宽松模式请用 `read` + `String::from_utf8_lossy`)。
     pub async fn read_text(&self, path: &str) -> Result<String> {
         let bytes = self.read(path).await?;
-        String::from_utf8(bytes).map_err(|e| {
-            crate::errors::Error::Parse(format!("文件内容不是合法 UTF-8: {e}"))
-        })
+        String::from_utf8(bytes)
+            .map_err(|e| crate::errors::Error::Parse(format!("文件内容不是合法 UTF-8: {e}")))
     }
 
     /// 将字节写入文件,自动创建父目录。
@@ -63,7 +62,11 @@ impl Fs {
     /// 对应端点:`GET /v1/sandboxes/{id}/fs-list/{path}`。
     /// 注意端点是 `fs-list` 而非 `fs`。
     pub async fn list(&self, path: &str) -> Result<Vec<FsEntry>> {
-        let url_path = format!("/v1/sandboxes/{}/fs-list/{}", self.sandbox_id, clean_path(path));
+        let url_path = format!(
+            "/v1/sandboxes/{}/fs-list/{}",
+            self.sandbox_id,
+            clean_path(path)
+        );
         let dto: FsListDto = self.client.get(&url_path).await?;
         Ok(dto.entries)
     }
@@ -111,8 +114,16 @@ fn percent_encode_segment(s: &str) -> String {
             b => {
                 // 格式化为 %XX
                 out.push('%');
-                out.push(char::from_digit((b >> 4) as u32, 16).unwrap().to_ascii_uppercase());
-                out.push(char::from_digit((b & 0xf) as u32, 16).unwrap().to_ascii_uppercase());
+                out.push(
+                    char::from_digit((b >> 4) as u32, 16)
+                        .unwrap()
+                        .to_ascii_uppercase(),
+                );
+                out.push(
+                    char::from_digit((b & 0xf) as u32, 16)
+                        .unwrap()
+                        .to_ascii_uppercase(),
+                );
             }
         }
     }

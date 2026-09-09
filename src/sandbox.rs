@@ -28,10 +28,10 @@ use crate::terminal::Terminal;
 fn normalize_network(s: &str) -> &str {
     match s {
         "allowlist" => "restricted-egress",
-        "open"      => "full-egress",
-        "sealed"    => "offline",
-        "deny"      => "offline",
-        other       => other,
+        "open" => "full-egress",
+        "sealed" => "offline",
+        "deny" => "offline",
+        other => other,
     }
 }
 
@@ -153,7 +153,10 @@ impl Sandbox {
             .sandboxes
             .into_iter()
             .filter(|info| matches_labels(&info.labels, &opts.labels))
-            .map(|info| Sandbox { info, client: client.clone() })
+            .map(|info| Sandbox {
+                info,
+                client: client.clone(),
+            })
             .collect();
         Ok(sandboxes)
     }
@@ -166,13 +169,17 @@ impl Sandbox {
     pub async fn pause(&self) -> Result<()> {
         let path = format!("/v1/sandboxes/{}/pause", self.info.id);
         // pause/resume 无请求体,传空 JSON 对象满足 Content-Type 要求。
-        self.client.post_no_content(&path, &serde_json::json!({})).await
+        self.client
+            .post_no_content(&path, &serde_json::json!({}))
+            .await
     }
 
     /// 恢复已暂停的 sandbox。对齐 Go `Resume`。
     pub async fn resume(&self) -> Result<()> {
         let path = format!("/v1/sandboxes/{}/resume", self.info.id);
-        self.client.post_no_content(&path, &serde_json::json!({})).await
+        self.client
+            .post_no_content(&path, &serde_json::json!({}))
+            .await
     }
 
     /// 启动已停止的 sandbox,使其重新进入 running 状态。
@@ -182,7 +189,9 @@ impl Sandbox {
     /// 而 pause/resume 只是冻结进程(cgroup freeze)。
     pub async fn start(&self) -> Result<()> {
         let path = format!("/v1/sandboxes/{}/start", self.info.id);
-        self.client.post_no_content(&path, &serde_json::json!({})).await
+        self.client
+            .post_no_content(&path, &serde_json::json!({}))
+            .await
     }
 
     /// 停止 sandbox(running→stopped),终止所有进程但保留文件系统。
@@ -191,7 +200,9 @@ impl Sandbox {
     /// 与 `pause` 不同:stop 是真正终止进程,可通过 [`Sandbox::start`] 重新启动。
     pub async fn stop(&self) -> Result<()> {
         let path = format!("/v1/sandboxes/{}/stop", self.info.id);
-        self.client.post_no_content(&path, &serde_json::json!({})).await
+        self.client
+            .post_no_content(&path, &serde_json::json!({}))
+            .await
     }
 
     /// 永久销毁 sandbox(DELETE)。对齐 Go `Kill`。
@@ -387,8 +398,11 @@ mod tests {
     /// have 包含 want 的全部 k=v → 匹配。
     #[test]
     fn matches_labels_subset_match() {
-        let have: HashMap<String, String> =
-            [("env".into(), "prod".into()), ("team".into(), "infra".into())].into();
+        let have: HashMap<String, String> = [
+            ("env".into(), "prod".into()),
+            ("team".into(), "infra".into()),
+        ]
+        .into();
         let want: HashMap<String, String> = [("env".into(), "prod".into())].into();
         assert!(matches_labels(&have, &want));
     }
@@ -405,8 +419,11 @@ mod tests {
     #[test]
     fn matches_labels_missing_key() {
         let have: HashMap<String, String> = [("env".into(), "prod".into())].into();
-        let want: HashMap<String, String> =
-            [("env".into(), "prod".into()), ("region".into(), "cn".into())].into();
+        let want: HashMap<String, String> = [
+            ("env".into(), "prod".into()),
+            ("region".into(), "cn".into()),
+        ]
+        .into();
         assert!(!matches_labels(&have, &want));
     }
 
@@ -415,8 +432,7 @@ mod tests {
     /// 验证服务端 query 参数格式:label=key:value,冒号分隔(value 可含等号)。
     #[test]
     fn label_params_format() {
-        let labels: HashMap<String, String> =
-            [("env".into(), "prod".into())].into();
+        let labels: HashMap<String, String> = [("env".into(), "prod".into())].into();
         let params: Vec<(&str, String)> = labels
             .iter()
             .map(|(k, v)| ("label", format!("{k}:{v}")))
@@ -429,8 +445,7 @@ mod tests {
     /// value 中含等号时冒号分隔不会歧义。
     #[test]
     fn label_params_value_with_equals() {
-        let labels: HashMap<String, String> =
-            [("filter".into(), "x=1".into())].into();
+        let labels: HashMap<String, String> = [("filter".into(), "x=1".into())].into();
         let params: Vec<(&str, String)> = labels
             .iter()
             .map(|(k, v)| ("label", format!("{k}:{v}")))

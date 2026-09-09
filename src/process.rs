@@ -22,13 +22,10 @@ use crate::types::{ProcessListDto, ProcessResult};
 /// 进程状态轮询间隔,默认 500ms,与其它语言 SDK 保持一致。
 ///
 /// 仅在测试中需要加速时修改;生产代码请保持默认。
-pub static POLL_INTERVAL: std::sync::atomic::AtomicU64 =
-    std::sync::atomic::AtomicU64::new(500);
+pub static POLL_INTERVAL: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(500);
 
 fn poll_interval() -> Duration {
-    Duration::from_millis(
-        POLL_INTERVAL.load(std::sync::atomic::Ordering::Relaxed),
-    )
+    Duration::from_millis(POLL_INTERVAL.load(std::sync::atomic::Ordering::Relaxed))
 }
 
 // ─── RunOpts / SpawnOpts ──────────────────────────────────────────────────────
@@ -119,7 +116,10 @@ impl Sandbox {
                                 return Err(e);
                             }
                         }
-                        return Ok(ProcessResult { exit_code, combined });
+                        return Ok(ProcessResult {
+                            exit_code,
+                            combined,
+                        });
                     }
                     _ => {} // 仍在运行,继续轮询
                 }
@@ -130,7 +130,10 @@ impl Sandbox {
                     .await
                     .map(|b| String::from_utf8_lossy(&b).into_owned())
                     .unwrap_or_default();
-                return Ok(ProcessResult { exit_code: -1, combined });
+                return Ok(ProcessResult {
+                    exit_code: -1,
+                    combined,
+                });
             }
 
             // 等待下一个轮询周期
@@ -141,10 +144,7 @@ impl Sandbox {
     /// GET /v1/sandboxes/{id}/processes/{pid}/logs,返回原始字节。
     /// 对齐 Go `fetchProcessLogs`。
     pub(crate) async fn fetch_process_logs(&self, proc_id: &str) -> Result<Vec<u8>> {
-        let path = format!(
-            "/v1/sandboxes/{}/processes/{}/logs",
-            self.info.id, proc_id
-        );
+        let path = format!("/v1/sandboxes/{}/processes/{}/logs", self.info.id, proc_id);
         self.client.get_bytes(&path).await
     }
 }

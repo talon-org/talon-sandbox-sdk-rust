@@ -48,7 +48,11 @@ pub fn configure(config: Config) {
 /// 取得默认 client:已 [`configure`] 则返回其克隆,否则用 env / 默认值惰性构造。
 /// crate 内部工厂方法在 `client: None` 时调用。
 pub(crate) fn default_client() -> Client {
-    if let Some(c) = DEFAULT_CLIENT.read().expect("config lock poisoned").as_ref() {
+    if let Some(c) = DEFAULT_CLIENT
+        .read()
+        .expect("config lock poisoned")
+        .as_ref()
+    {
         return c.clone();
     }
     // 未配置:用 env(TALON_SANDBOX_SERVER / _API_KEY)或内置默认构造。

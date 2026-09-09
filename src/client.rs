@@ -145,7 +145,10 @@ impl Client {
         let req = self.auth(self.http.get(self.url(path)));
         let resp = req.send().await.map_err(|e| Error::Network(Box::new(e)))?;
         let resp = self.check_status(resp).await?;
-        let bytes = resp.bytes().await.map_err(|e| Error::Network(Box::new(e)))?;
+        let bytes = resp
+            .bytes()
+            .await
+            .map_err(|e| Error::Network(Box::new(e)))?;
         Ok(bytes.to_vec())
     }
 
@@ -206,7 +209,10 @@ impl Client {
             .await
             .map_err(|e| Error::Network(Box::new(e)))?;
         let resp = self.check_status(resp).await?;
-        let bytes = resp.bytes().await.map_err(|e| Error::Network(Box::new(e)))?;
+        let bytes = resp
+            .bytes()
+            .await
+            .map_err(|e| Error::Network(Box::new(e)))?;
         serde_json::from_slice(&bytes).map_err(Error::Serde)
     }
 
@@ -308,5 +314,7 @@ fn resolve_server(explicit: Option<&str>) -> String {
 
 /// 从 TALON_SANDBOX_API_KEY env 读 api key。
 fn env_api_key() -> Option<String> {
-    std::env::var("TALON_SANDBOX_API_KEY").ok().filter(|s| !s.is_empty())
+    std::env::var("TALON_SANDBOX_API_KEY")
+        .ok()
+        .filter(|s| !s.is_empty())
 }

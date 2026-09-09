@@ -25,7 +25,9 @@ async fn main() -> talon_sandbox::Result<()> {
 
     println!("sandbox: {}", sb.id());
 
-    let result = sb.run("node -e 'console.log(\"hello from sandbox\")'").await?;
+    let result = sb
+        .run("node -e 'console.log(\"hello from sandbox\")'")
+        .await?;
     print!("{}", result.combined);
 
     match sb.expose(3000, Default::default()).await {

@@ -47,7 +47,9 @@ const app = express()
 app.get('/', (req, res) => res.send('hello from talon sandbox!'))
 app.listen(3000, () => console.log('listening on :3000'))
 "#;
-    sb.fs().write("/workspace/index.js", app_code.to_vec()).await?;
+    sb.fs()
+        .write("/workspace/index.js", app_code.to_vec())
+        .await?;
     sb.fs()
         .write_text(
             "/workspace/package.json",

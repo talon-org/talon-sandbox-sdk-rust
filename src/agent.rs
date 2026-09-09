@@ -118,7 +118,9 @@ impl Sandbox {
             max_steps: opts.max_steps,
             llm_model: opts.llm_model.as_deref(),
         };
-        self.client.post_with_timeout(&path, &body, AGENT_RUN_TIMEOUT).await
+        self.client
+            .post_with_timeout(&path, &body, AGENT_RUN_TIMEOUT)
+            .await
     }
 }
 

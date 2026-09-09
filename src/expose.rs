@@ -123,7 +123,13 @@ pub(crate) async fn exposed(client: &Client, sandbox_id: &str) -> Result<Vec<Exp
             };
         }
         match e {
-            Error::NotFound { message, request_id } => Error::NotFound { message, request_id },
+            Error::NotFound {
+                message,
+                request_id,
+            } => Error::NotFound {
+                message,
+                request_id,
+            },
             other => other,
         }
     })?;
@@ -155,30 +161,52 @@ fn is_endpoint_missing(err: &Error) -> bool {
 fn wrap_port_error(err: Error, op: &str, port: u16) -> Error {
     // 对各变体的 message 字段加前缀,保留其它字段不变。
     match err {
-        Error::NotFound { message, request_id } => Error::NotFound {
+        Error::NotFound {
+            message,
+            request_id,
+        } => Error::NotFound {
             message: format!("{op} port {port}: {message}"),
             request_id,
         },
-        Error::Auth { status, message, request_id } => Error::Auth {
+        Error::Auth {
+            status,
+            message,
+            request_id,
+        } => Error::Auth {
             status,
             message: format!("{op} port {port}: {message}"),
             request_id,
         },
-        Error::Quota { message, request_id } => Error::Quota {
+        Error::Quota {
+            message,
+            request_id,
+        } => Error::Quota {
             message: format!("{op} port {port}: {message}"),
             request_id,
         },
-        Error::RateLimit { message, request_id, retry_after } => Error::RateLimit {
+        Error::RateLimit {
+            message,
+            request_id,
+            retry_after,
+        } => Error::RateLimit {
             message: format!("{op} port {port}: {message}"),
             request_id,
             retry_after,
         },
-        Error::Server { status, message, request_id } => Error::Server {
+        Error::Server {
+            status,
+            message,
+            request_id,
+        } => Error::Server {
             status,
             message: format!("{op} port {port}: {message}"),
             request_id,
         },
-        Error::Api { status, message, request_id } => Error::Api {
+        Error::Api {
+            status,
+            message,
+            request_id,
+        } => Error::Api {
             status,
             message: format!("{op} port {port}: {message}"),
             request_id,

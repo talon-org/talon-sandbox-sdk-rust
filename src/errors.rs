@@ -23,27 +23,49 @@ use std::time::Duration;
 pub enum Error {
     /// 401 / 403:认证 / 授权失败。
     #[error("sandbox API error {status}: {message} (auth)")]
-    Auth { status: u16, message: String, request_id: Option<String> },
+    Auth {
+        status: u16,
+        message: String,
+        request_id: Option<String>,
+    },
 
     /// 404:资源不存在。
     #[error("sandbox API error 404: {message} (not found)")]
-    NotFound { message: String, request_id: Option<String> },
+    NotFound {
+        message: String,
+        request_id: Option<String>,
+    },
 
     /// 422:配额超限。
     #[error("sandbox API error 422: {message} (quota)")]
-    Quota { message: String, request_id: Option<String> },
+    Quota {
+        message: String,
+        request_id: Option<String>,
+    },
 
     /// 429:限流。`retry_after` 来自 Retry-After 响应头(若有)。
     #[error("sandbox API error 429: {message} (rate limit)")]
-    RateLimit { message: String, request_id: Option<String>, retry_after: Option<Duration> },
+    RateLimit {
+        message: String,
+        request_id: Option<String>,
+        retry_after: Option<Duration>,
+    },
 
     /// 5xx:服务端错误。
     #[error("sandbox API error {status}: {message} (server)")]
-    Server { status: u16, message: String, request_id: Option<String> },
+    Server {
+        status: u16,
+        message: String,
+        request_id: Option<String>,
+    },
 
     /// 其它未归类的 4xx。
     #[error("sandbox API error {status}: {message}")]
-    Api { status: u16, message: String, request_id: Option<String> },
+    Api {
+        status: u16,
+        message: String,
+        request_id: Option<String>,
+    },
 
     /// HTTP 传输层失败(连接拒绝、DNS、TLS 等)。
     #[error("network error: {0}")]
@@ -80,21 +102,43 @@ impl Error {
         retry_after: Option<Duration>,
     ) -> Self {
         match status {
-            401 | 403 => Error::Auth { status, message, request_id },
-            404 => Error::NotFound { message, request_id },
-            422 => Error::Quota { message, request_id },
-            429 => Error::RateLimit { message, request_id, retry_after },
-            s if s >= 500 => Error::Server { status, message, request_id },
-            _ => Error::Api { status, message, request_id },
+            401 | 403 => Error::Auth {
+                status,
+                message,
+                request_id,
+            },
+            404 => Error::NotFound {
+                message,
+                request_id,
+            },
+            422 => Error::Quota {
+                message,
+                request_id,
+            },
+            429 => Error::RateLimit {
+                message,
+                request_id,
+                retry_after,
+            },
+            s if s >= 500 => Error::Server {
+                status,
+                message,
+                request_id,
+            },
+            _ => Error::Api {
+                status,
+                message,
+                request_id,
+            },
         }
     }
 
     /// 该错误对应的 HTTP 状态码(若是 API 错误)。网络 / 解析等本地错误返回 `None`。
     pub fn status(&self) -> Option<u16> {
         match self {
-            Error::Auth { status, .. } | Error::Server { status, .. } | Error::Api { status, .. } => {
-                Some(*status)
-            }
+            Error::Auth { status, .. }
+            | Error::Server { status, .. }
+            | Error::Api { status, .. } => Some(*status),
             Error::NotFound { .. } => Some(404),
             Error::Quota { .. } => Some(422),
             Error::RateLimit { .. } => Some(429),

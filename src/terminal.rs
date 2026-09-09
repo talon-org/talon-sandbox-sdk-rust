@@ -20,11 +20,7 @@ use futures_util::{
 use tokio::net::TcpStream;
 use tokio_tungstenite::{
     connect_async,
-    tungstenite::{
-        client::IntoClientRequest,
-        http::HeaderValue,
-        Message,
-    },
+    tungstenite::{client::IntoClientRequest, http::HeaderValue, Message},
     MaybeTlsStream, WebSocketStream,
 };
 
@@ -68,10 +64,7 @@ impl Terminal {
     /// 建立连接并发送初始 resize 消息(可选)。
     ///
     /// `rows`/`cols` 均为 `None` 时等同于 [`Terminal::open`]。
-    pub async fn open_with(
-        &self,
-        initial_size: Option<(u16, u16)>,
-    ) -> Result<PtySession> {
+    pub async fn open_with(&self, initial_size: Option<(u16, u16)>) -> Result<PtySession> {
         // 1. 拼 WebSocket URL,e.g. "wss://api.sandbox.talon.net.cn/v1/sandboxes/sb_xxx/pty"
         let url = self
             .client
@@ -90,8 +83,7 @@ impl Terminal {
         );
 
         if let Some(auth) = self.client.auth_header() {
-            let value = HeaderValue::from_str(&auth)
-                .map_err(|e| Error::Network(Box::new(e)))?;
+            let value = HeaderValue::from_str(&auth).map_err(|e| Error::Network(Box::new(e)))?;
             request.headers_mut().insert("Authorization", value);
         }
 
@@ -170,9 +162,7 @@ impl PtySession {
             return Err(Error::PtyClosed);
         }
         // 手动拼 JSON,避免为一个结构体引入额外 serde 派生
-        let json = format!(
-            r#"{{"type":"resize","rows":{rows},"cols":{cols}}}"#
-        );
+        let json = format!(r#"{{"type":"resize","rows":{rows},"cols":{cols}}}"#);
         self.sink
             .send(Message::Text(json))
             .await
